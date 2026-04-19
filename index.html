@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="EduFlow - Course Management System for educational institutions">
+<title>EduFlow — Course Management System</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+--bg-base:#0d0f14;--bg-surface:#13161e;--bg-card:#161b26;--bg-card-hover:#1c2333;
+--accent:#f5c842;--accent-dim:rgba(245,200,66,.15);--accent-glow:rgba(245,200,66,.3);
+--success:#2dd4bf;--success-dim:rgba(45,212,191,.15);
+--danger:#f43f5e;--danger-dim:rgba(244,63,94,.15);
+--info:#a78bfa;--info-dim:rgba(167,139,250,.15);
+--warning:#fb923c;--warning-dim:rgba(251,146,60,.15);
+--text-primary:#f1f5f9;--text-secondary:#94a3b8;--text-muted:#64748b;
+--border:#1e293b;--border-light:#334155;
+--font-body:'DM Sans',sans-serif;--font-heading:'Playfair Display',serif;--font-mono:'DM Mono',monospace;
+--radius-sm:6px;--radius-md:10px;--radius-lg:14px;--radius-xl:20px;
+--shadow-sm:0 2px 8px rgba(0,0,0,.3);--shadow-md:0 4px 20px rgba(0,0,0,.4);--shadow-lg:0 8px 40px rgba(0,0,0,.5);
+--sidebar-w:260px;--topbar-h:64px;--transition:200ms cubic-bezier(.4,0,.2,1);
+}
+html{scroll-behavior:smooth}
+body{font-family:var(--font-body);background:var(--bg-base);color:var(--text-primary);line-height:1.6;overflow:hidden;height:100vh}
+h1,h2,h3,h4{font-family:var(--font-heading);font-weight:700;line-height:1.3}
+a{color:var(--accent);text-decoration:none}
+button{font-family:var(--font-body);cursor:pointer;border:none;outline:none;transition:var(--transition)}
+input,select,textarea{font-family:var(--font-body);background:var(--bg-surface);color:var(--text-primary);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 14px;font-size:14px;transition:var(--transition);outline:none;width:100%}
+input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-dim)}
+textarea{resize:vertical;min-height:80px}
+select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center}
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--border-light)}
+.app{display:flex;height:100vh;overflow:hidden}
+/* SIDEBAR */
+.sidebar{width:var(--sidebar-w);min-width:var(--sidebar-w);height:100vh;background:var(--bg-surface);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;left:0;top:0;z-index:100;overflow-y:auto}
+.sidebar-header{padding:24px 20px;border-bottom:1px solid var(--border)}
+.sidebar-logo{display:flex;align-items:center;gap:12px}
+.sidebar-logo .logo-icon{width:40px;height:40px;background:linear-gradient(135deg,var(--accent),#e6a817);border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;color:var(--bg-base)}
+.sidebar-logo h2{font-size:22px;background:linear-gradient(135deg,var(--accent),#fde68a);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.sidebar-role{margin:16px 20px;background:var(--bg-card);border-radius:var(--radius-md);padding:4px;display:flex;gap:4px}
+.role-btn{flex:1;padding:8px;border-radius:var(--radius-sm);font-size:13px;font-weight:600;color:var(--text-secondary);background:transparent;transition:var(--transition)}
+.role-btn.active{background:var(--accent);color:var(--bg-base)}
+.sidebar-nav{flex:1;padding:12px;display:flex;flex-direction:column;gap:2px}
+.nav-item{display:flex;align-items:center;gap:12px;padding:11px 16px;border-radius:var(--radius-md);color:var(--text-secondary);font-size:14px;font-weight:500;cursor:pointer;transition:var(--transition);position:relative}
+.nav-item:hover{background:var(--bg-card);color:var(--text-primary)}
+.nav-item.active{background:var(--accent-dim);color:var(--accent)}
+.nav-item .nav-icon{font-size:18px;width:24px;text-align:center}
+.nav-item .badge{position:absolute;right:12px;background:var(--accent);color:var(--bg-base);font-size:11px;font-weight:700;padding:2px 8px;border-radius:99px;font-family:var(--font-mono)}
+.sidebar-user{padding:16px 20px;border-top:1px solid var(--border);display:flex;align-items:center;gap:12px}
+.user-avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--accent),#e6a817);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--bg-base)}
+.user-info{flex:1}
+.user-info .name{font-size:13px;font-weight:600}
+.user-info .email{font-size:11px;color:var(--text-muted)}
+/* MAIN */
+.main{flex:1;margin-left:var(--sidebar-w);display:flex;flex-direction:column;height:100vh}
+.topbar{height:var(--topbar-h);min-height:var(--topbar-h);background:var(--bg-surface);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 28px;position:sticky;top:0;z-index:50}
+.topbar-left{display:flex;align-items:center;gap:16px}
+.topbar-left h1{font-size:20px;font-weight:700}
+.topbar-right{display:flex;align-items:center;gap:12px}
+.search-box{position:relative;width:280px}
+.search-box input{padding-left:38px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);font-size:13px}
+.search-box .search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text-muted);font-size:16px}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:9px 18px;border-radius:var(--radius-sm);font-size:13px;font-weight:600;transition:var(--transition)}
+.btn-primary{background:var(--accent);color:var(--bg-base)}
+.btn-primary:hover{background:#e6b930;transform:translateY(-1px);box-shadow:0 4px 15px var(--accent-glow)}
+.btn-secondary{background:var(--bg-card);color:var(--text-primary);border:1px solid var(--border)}
+.btn-secondary:hover{border-color:var(--accent);color:var(--accent)}
+.btn-danger{background:var(--danger-dim);color:var(--danger);border:1px solid transparent}
+.btn-danger:hover{background:var(--danger);color:white}
+.btn-success{background:var(--success-dim);color:var(--success)}
+.btn-sm{padding:6px 12px;font-size:12px}
+.btn-icon{width:36px;height:36px;padding:0;display:flex;align-items:center;justify-content:center;border-radius:var(--radius-sm);background:var(--bg-card);color:var(--text-secondary);border:1px solid var(--border)}
+.btn-icon:hover{border-color:var(--accent);color:var(--accent)}
+/* CONTENT */
+.content{flex:1;overflow-y:auto;padding:28px}
+.content::-webkit-scrollbar{width:6px}
+/* STAT CARDS */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:20px;margin-bottom:28px}
+.stat-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:22px;transition:var(--transition);position:relative;overflow:hidden}
+.stat-card:hover{transform:translateY(-2px);border-color:var(--border-light);box-shadow:var(--shadow-md)}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.stat-card.gold::before{background:linear-gradient(90deg,var(--accent),#fde68a)}
+.stat-card.emerald::before{background:linear-gradient(90deg,var(--success),#5eead4)}
+.stat-card.rose::before{background:linear-gradient(90deg,var(--danger),#fb7185)}
+.stat-card.violet::before{background:linear-gradient(90deg,var(--info),#c4b5fd)}
+.stat-card .stat-icon{font-size:28px;margin-bottom:8px}
+.stat-card .stat-value{font-family:var(--font-mono);font-size:30px;font-weight:700;margin-bottom:2px}
+.stat-card .stat-label{font-size:13px;color:var(--text-secondary);font-weight:500}
+/* CARDS GRID */
+.cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px}
+.course-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;cursor:pointer;transition:var(--transition);position:relative}
+.course-card:hover{transform:translateY(-4px);border-color:var(--border-light);box-shadow:var(--shadow-lg)}
+.card-thumb{height:140px;display:flex;align-items:center;justify-content:center;font-size:52px;position:relative}
+.card-thumb .enrolled-badge{position:absolute;top:12px;right:12px;background:var(--success);color:var(--bg-base);font-size:11px;font-weight:700;padding:4px 10px;border-radius:99px}
+.card-thumb .status-badge{position:absolute;top:12px;left:12px;font-size:11px;font-weight:700;padding:4px 10px;border-radius:99px}
+.card-thumb .status-badge.active{background:var(--success-dim);color:var(--success)}
+.card-thumb .status-badge.draft{background:var(--warning-dim);color:var(--warning)}
+.card-body{padding:18px}
+.card-body h3{font-size:16px;margin-bottom:6px;font-family:var(--font-body);font-weight:600}
+.card-category{font-size:12px;color:var(--accent);font-weight:600;margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px}
+.card-meta{display:flex;gap:16px;font-size:12px;color:var(--text-muted)}
+.card-meta span{display:flex;align-items:center;gap:4px}
+.card-progress{margin-top:12px}
+.progress-bar{height:6px;background:var(--bg-surface);border-radius:3px;overflow:hidden}
+.progress-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--accent),#fde68a);transition:width .4s ease}
+.progress-text{font-size:11px;color:var(--text-muted);margin-top:4px;font-family:var(--font-mono)}
+/* SECTION HEADERS */
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.section-header h2{font-size:20px}
+.section-header h3{font-size:17px;font-family:var(--font-body);font-weight:600}
+/* FILTER CHIPS */
+.filter-chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px}
+.chip{padding:7px 16px;border-radius:99px;font-size:13px;font-weight:500;background:var(--bg-card);color:var(--text-secondary);border:1px solid var(--border);cursor:pointer;transition:var(--transition)}
+.chip:hover{border-color:var(--accent);color:var(--accent)}
+.chip.active{background:var(--accent);color:var(--bg-base);border-color:var(--accent)}
+/* TABLES */
+.table-container{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;padding:14px 18px;font-size:12px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;background:var(--bg-surface);border-bottom:1px solid var(--border)}
+td{padding:14px 18px;font-size:13px;border-bottom:1px solid var(--border);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,.02)}
+.status-pill{padding:4px 12px;border-radius:99px;font-size:11px;font-weight:700;display:inline-block}
+.status-pill.active{background:var(--success-dim);color:var(--success)}
+.status-pill.completed{background:var(--accent-dim);color:var(--accent)}
+.status-pill.dropped{background:var(--danger-dim);color:var(--danger)}
+.status-pill.draft{background:var(--warning-dim);color:var(--warning)}
+/* DETAIL VIEW */
+.detail-view{max-width:900px}
+.detail-header{display:flex;gap:24px;margin-bottom:28px}
+.detail-thumb{width:120px;height:120px;border-radius:var(--radius-lg);display:flex;align-items:center;justify-content:center;font-size:56px;flex-shrink:0}
+.detail-info{flex:1}
+.detail-info h1{font-size:26px;margin-bottom:4px}
+.detail-info .detail-category{font-size:13px;color:var(--accent);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+.detail-info .detail-desc{font-size:14px;color:var(--text-secondary);margin-bottom:12px;line-height:1.7}
+.detail-meta{display:flex;gap:24px;flex-wrap:wrap}
+.detail-meta .meta-item{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text-muted)}
+.detail-meta .meta-item span{color:var(--text-primary);font-weight:500}
+.detail-progress{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:22px;margin-bottom:24px}
+.detail-progress h3{font-size:15px;margin-bottom:12px;font-family:var(--font-body);font-weight:600}
+.detail-progress .progress-bar{height:10px}
+.detail-progress .progress-pct{font-size:24px;font-weight:700;font-family:var(--font-mono);color:var(--accent);margin-top:8px}
+/* LESSONS LIST */
+.lessons-list{display:flex;flex-direction:column;gap:6px}
+.lesson-item{display:flex;align-items:center;gap:14px;padding:14px 18px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-md);transition:var(--transition)}
+.lesson-item:hover{border-color:var(--border-light)}
+.lesson-check{width:22px;height:22px;border-radius:50%;border:2px solid var(--border-light);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:var(--transition);flex-shrink:0;font-size:12px;color:transparent}
+.lesson-check.completed{background:var(--success);border-color:var(--success);color:white}
+.lesson-check.locked{opacity:.4;cursor:default}
+.lesson-type{font-size:18px;width:28px;text-align:center}
+.lesson-info{flex:1}
+.lesson-info .lesson-title{font-size:14px;font-weight:500}
+.lesson-info .lesson-dur{font-size:12px;color:var(--text-muted);font-family:var(--font-mono)}
+/* CERTIFICATE */
+.certificate{background:linear-gradient(135deg,#1a1510,#1f1a0e);border:2px solid var(--accent);border-radius:var(--radius-xl);padding:40px;text-align:center;margin-top:28px;position:relative;overflow:hidden}
+.certificate::before{content:'';position:absolute;inset:8px;border:1px dashed var(--accent-glow);border-radius:calc(var(--radius-xl) - 4px);pointer-events:none}
+.certificate .cert-icon{font-size:52px;margin-bottom:12px}
+.certificate h2{font-size:28px;color:var(--accent);margin-bottom:4px}
+.certificate .cert-subtitle{font-size:14px;color:var(--text-muted);margin-bottom:20px}
+.certificate .cert-name{font-size:22px;font-family:var(--font-heading);color:var(--text-primary);margin-bottom:4px}
+.certificate .cert-course{font-size:15px;color:var(--accent)}
+.certificate .cert-date{font-size:12px;color:var(--text-muted);margin-top:16px;font-family:var(--font-mono)}
+/* CHARTS */
+.chart-container{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:22px}
+.chart-container h3{font-size:15px;margin-bottom:16px;font-family:var(--font-body);font-weight:600}
+.chart-container canvas{width:100%;display:block}
+.charts-grid{display:grid;grid-template-columns:1.2fr .8fr;gap:20px;margin-bottom:28px}
+.legend{display:flex;flex-wrap:wrap;gap:12px;margin-top:14px}
+.legend-item{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-secondary)}
+.legend-dot{width:10px;height:10px;border-radius:50%}
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(6px);z-index:200;display:none;align-items:center;justify-content:center;animation:fadeIn .2s}
+.modal-overlay.show{display:flex}
+.modal{background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-xl);width:90%;max-width:640px;max-height:85vh;overflow-y:auto;animation:modalIn .3s cubic-bezier(.34,1.56,.64,1)}
+.modal-header{display:flex;align-items:center;justify-content:space-between;padding:22px 24px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--bg-surface);z-index:1}
+.modal-header h2{font-size:18px;font-family:var(--font-body);font-weight:700}
+.modal-close{width:32px;height:32px;border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;color:var(--text-muted);background:var(--bg-card);cursor:pointer;font-size:18px;transition:var(--transition)}
+.modal-close:hover{color:var(--danger);background:var(--danger-dim)}
+.modal-body{padding:24px}
+.form-group{margin-bottom:18px}
+.form-group label{display:block;font-size:13px;font-weight:600;color:var(--text-secondary);margin-bottom:6px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.lesson-builder{margin-top:8px}
+.lesson-builder-item{display:flex;gap:8px;align-items:center;margin-bottom:8px;padding:12px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-sm)}
+.lesson-builder-item input,.lesson-builder-item select{font-size:12px;padding:8px 10px}
+.lesson-builder-item .remove-lesson{width:28px;height:28px;border-radius:50%;background:var(--danger-dim);color:var(--danger);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.modal-footer{padding:16px 24px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px;position:sticky;bottom:0;background:var(--bg-surface)}
+/* TOAST */
+.toast-container{position:fixed;top:80px;right:24px;z-index:300;display:flex;flex-direction:column;gap:10px}
+.toast{display:flex;align-items:center;gap:12px;padding:14px 20px;background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-md);min-width:320px;box-shadow:var(--shadow-lg);animation:toastIn .3s ease;border-left:4px solid var(--accent)}
+.toast.success{border-left-color:var(--success)}
+.toast.error{border-left-color:var(--danger)}
+.toast.info{border-left-color:var(--accent)}
+.toast .toast-icon{font-size:20px}
+.toast .toast-msg{flex:1;font-size:13px;font-weight:500}
+.toast .toast-close{cursor:pointer;color:var(--text-muted);font-size:16px;padding:4px}
+/* EMPTY STATE */
+.empty-state{text-align:center;padding:60px 20px}
+.empty-state .empty-icon{font-size:56px;margin-bottom:16px;opacity:.7}
+.empty-state h3{font-size:18px;margin-bottom:8px;font-family:var(--font-body);font-weight:600}
+.empty-state p{font-size:14px;color:var(--text-muted);margin-bottom:20px}
+/* ANIMATIONS */
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes modalIn{from{opacity:0;transform:scale(.9) translateY(20px)}to{opacity:1;transform:scale(1) translateY(0)}}
+@keyframes toastIn{from{opacity:0;transform:translateX(100px)}to{opacity:1;transform:translateX(0)}}
+@keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.fade-in{animation:fadeIn .3s ease}
+.slide-up{animation:slideUp .4s ease}
+/* CONFIRM MODAL */
+.confirm-body{text-align:center;padding:32px 24px}
+.confirm-body .confirm-icon{font-size:48px;margin-bottom:16px}
+.confirm-body h3{font-size:18px;margin-bottom:8px}
+.confirm-body p{font-size:14px;color:var(--text-muted)}
+</style>
+</head>
+<body>
+<div class="app">
+<aside class="sidebar" id="sidebar"></aside>
+<main class="main">
+<header class="topbar" id="topbar"></header>
+<section class="content" id="content"></section>
+</main>
+</div>
+<div class="modal-overlay" id="modalOverlay"><div class="modal" id="modal"></div></div>
+<div class="toast-container" id="toastContainer"></div>
+<script>
+// ===== DATA LAYER =====
+const KEYS = {courses:'ef_courses',users:'ef_users',enrollments:'ef_enrollments',progress:'ef_progress',currentUser:'ef_current_user'};
+const uid = () => Math.random().toString(36).substr(2,8);
+const now = () => new Date().toISOString();
+const DB = {
+  get(k){try{return JSON.parse(localStorage.getItem(k))||[]}catch{return[]}},
+  set(k,v){localStorage.setItem(k,JSON.stringify(v))},
+  getStr(k){return localStorage.getItem(k)},
+  setStr(k,v){localStorage.setItem(k,v)}
+};
+// ===== APP STATE =====
+const App = {
+  role:'student', view:'dashboard', currentUserId:null, searchQuery:'', categoryFilter:'All',
+  selectedCourseId:null, editingCourseId:null
+};
+// ===== CATEGORY COLORS =====
+const CAT_COLORS = {Technology:'#3b82f6',Business:'#f59e0b',Design:'#ec4899',Science:'#10b981',Arts:'#8b5cf6',Mathematics:'#ef4444'};
+const CAT_EMOJIS = {Technology:'💻',Business:'📊',Design:'🎨',Science:'🔬',Arts:'🎭',Mathematics:'📐'};
+// ===== SEED DATA =====
+function seedData(){
+  if(DB.get(KEYS.courses).length>0) return;
+  const users = [
+    {id:'stu1',name:'Alex Johnson',email:'alex@eduflow.com',role:'student',avatar:'AJ',joinedAt:'2025-01-15T08:00:00Z'},
+    {id:'stu2',name:'Maria Garcia',email:'maria@eduflow.com',role:'student',avatar:'MG',joinedAt:'2025-02-01T08:00:00Z'},
+    {id:'stu3',name:'Sam Chen',email:'sam@eduflow.com',role:'student',avatar:'SC',joinedAt:'2025-02-10T08:00:00Z'},
+    {id:'adm1',name:'Dr. Admin',email:'admin@eduflow.com',role:'admin',avatar:'DA',joinedAt:'2025-01-01T08:00:00Z'}
+  ];
+  const courses = [
+    {id:'c1',title:'Full-Stack Web Development',description:'Master modern web development with HTML, CSS, JavaScript, React, and Node.js. Build real-world projects from scratch.',instructor:'Prof. Sarah Miller',category:'Technology',duration:42,thumbnail:'💻',color:'#3b82f6',status:'active',createdAt:'2025-01-20T08:00:00Z',
+      lessons:[{id:'l1a',title:'Introduction to HTML5',duration:45,type:'video'},{id:'l1b',title:'CSS Fundamentals & Flexbox',duration:60,type:'video'},{id:'l1c',title:'JavaScript ES6+ Basics',duration:55,type:'video'},{id:'l1d',title:'DOM Manipulation Deep Dive',duration:50,type:'reading'},{id:'l1e',title:'Building a REST API with Node.js',duration:65,type:'video'},{id:'l1f',title:'Final Project Assessment',duration:30,type:'quiz'}]},
+    {id:'c2',title:'Digital Marketing Strategy',description:'Learn to create winning marketing campaigns using SEO, social media, email marketing, and data analytics.',instructor:'Prof. James Wright',category:'Business',duration:28,thumbnail:'📈',color:'#f59e0b',status:'active',createdAt:'2025-01-25T08:00:00Z',
+      lessons:[{id:'l2a',title:'Marketing Fundamentals',duration:40,type:'video'},{id:'l2b',title:'SEO & Content Strategy',duration:55,type:'reading'},{id:'l2c',title:'Social Media Marketing',duration:50,type:'video'},{id:'l2d',title:'Email Campaign Design',duration:45,type:'video'},{id:'l2e',title:'Analytics & ROI Measurement',duration:35,type:'quiz'}]},
+    {id:'c3',title:'UI/UX Design Principles',description:'Explore user-centered design thinking, wireframing, prototyping, and visual design fundamentals.',instructor:'Prof. Lisa Chen',category:'Design',duration:35,thumbnail:'🎨',color:'#ec4899',status:'active',createdAt:'2025-02-01T08:00:00Z',
+      lessons:[{id:'l3a',title:'Design Thinking Methodology',duration:45,type:'video'},{id:'l3b',title:'User Research & Personas',duration:50,type:'reading'},{id:'l3c',title:'Wireframing & Prototyping',duration:55,type:'video'},{id:'l3d',title:'Visual Hierarchy & Typography',duration:40,type:'video'},{id:'l3e',title:'Usability Testing',duration:35,type:'quiz'}]},
+    {id:'c4',title:'Data Science with Python',description:'Dive into data analysis, machine learning, and visualization using Python, Pandas, and Scikit-learn.',instructor:'Dr. Robert Kim',category:'Science',duration:48,thumbnail:'🔬',color:'#10b981',status:'active',createdAt:'2025-02-05T08:00:00Z',
+      lessons:[{id:'l4a',title:'Python for Data Science',duration:60,type:'video'},{id:'l4b',title:'Pandas & Data Wrangling',duration:55,type:'video'},{id:'l4c',title:'Data Visualization with Matplotlib',duration:50,type:'video'},{id:'l4d',title:'Intro to Machine Learning',duration:65,type:'reading'},{id:'l4e',title:'Building Predictive Models',duration:55,type:'video'},{id:'l4f',title:'Capstone Project',duration:40,type:'quiz'}]},
+    {id:'c5',title:'Creative Writing Workshop',description:'Develop your creative voice through fiction, poetry, and narrative nonfiction exercises.',instructor:'Prof. Emma Davis',category:'Arts',duration:24,thumbnail:'✍️',color:'#8b5cf6',status:'active',createdAt:'2025-02-10T08:00:00Z',
+      lessons:[{id:'l5a',title:'Finding Your Voice',duration:35,type:'video'},{id:'l5b',title:'Character Development',duration:40,type:'reading'},{id:'l5c',title:'Plot & Story Structure',duration:45,type:'video'},{id:'l5d',title:'Poetry Fundamentals',duration:30,type:'video'},{id:'l5e',title:'Portfolio Submission',duration:25,type:'quiz'}]},
+    {id:'c6',title:'Calculus & Linear Algebra',description:'Build strong mathematical foundations in differential calculus, integral calculus, and matrix operations.',instructor:'Dr. Michael Tan',category:'Mathematics',duration:52,thumbnail:'📐',color:'#ef4444',status:'active',createdAt:'2025-02-15T08:00:00Z',
+      lessons:[{id:'l6a',title:'Limits & Continuity',duration:50,type:'video'},{id:'l6b',title:'Derivatives & Applications',duration:60,type:'video'},{id:'l6c',title:'Integration Techniques',duration:55,type:'reading'},{id:'l6d',title:'Vectors & Matrices',duration:50,type:'video'},{id:'l6e',title:'Eigenvalues & Eigenvectors',duration:45,type:'video'},{id:'l6f',title:'Comprehensive Exam',duration:40,type:'quiz'}]},
+    {id:'c7',title:'Cybersecurity Fundamentals',description:'Learn network security, ethical hacking, encryption, and threat assessment in this hands-on course.',instructor:'Prof. Sarah Miller',category:'Technology',duration:38,thumbnail:'🔒',color:'#3b82f6',status:'draft',createdAt:'2025-03-01T08:00:00Z',
+      lessons:[{id:'l7a',title:'Security Landscape Overview',duration:40,type:'video'},{id:'l7b',title:'Network Security Basics',duration:50,type:'video'},{id:'l7c',title:'Cryptography Essentials',duration:45,type:'reading'},{id:'l7d',title:'Penetration Testing',duration:55,type:'video'},{id:'l7e',title:'Security Audit Quiz',duration:30,type:'quiz'}]}
+  ];
+  const enrollments = [
+    {id:uid(),userId:'stu1',courseId:'c1',enrolledAt:'2025-02-01T09:00:00Z',completedAt:null,status:'active'},
+    {id:uid(),userId:'stu1',courseId:'c3',enrolledAt:'2025-02-05T09:00:00Z',completedAt:null,status:'active'},
+    {id:uid(),userId:'stu1',courseId:'c5',enrolledAt:'2025-02-10T09:00:00Z',completedAt:'2025-03-15T14:00:00Z',status:'completed'},
+    {id:uid(),userId:'stu2',courseId:'c1',enrolledAt:'2025-02-03T09:00:00Z',completedAt:null,status:'active'},
+    {id:uid(),userId:'stu2',courseId:'c2',enrolledAt:'2025-02-06T09:00:00Z',completedAt:null,status:'active'},
+    {id:uid(),userId:'stu2',courseId:'c4',enrolledAt:'2025-02-12T09:00:00Z',completedAt:null,status:'active'},
+    {id:uid(),userId:'stu3',courseId:'c2',enrolledAt:'2025-02-08T09:00:00Z',completedAt:'2025-03-10T12:00:00Z',status:'completed'},
+    {id:uid(),userId:'stu3',courseId:'c6',enrolledAt:'2025-02-15T09:00:00Z',completedAt:null,status:'active'},
+    {id:uid(),userId:'stu3',courseId:'c4',enrolledAt:'2025-02-18T09:00:00Z',completedAt:null,status:'active'}
+  ];
+  const progress = [
+    {userId:'stu1',courseId:'c1',lessonId:'l1a',completedAt:'2025-02-02T10:00:00Z'},
+    {userId:'stu1',courseId:'c1',lessonId:'l1b',completedAt:'2025-02-03T10:00:00Z'},
+    {userId:'stu1',courseId:'c1',lessonId:'l1c',completedAt:'2025-02-05T10:00:00Z'},
+    {userId:'stu1',courseId:'c3',lessonId:'l3a',completedAt:'2025-02-06T10:00:00Z'},
+    {userId:'stu1',courseId:'c3',lessonId:'l3b',completedAt:'2025-02-08T10:00:00Z'},
+    {userId:'stu1',courseId:'c5',lessonId:'l5a',completedAt:'2025-02-11T10:00:00Z'},
+    {userId:'stu1',courseId:'c5',lessonId:'l5b',completedAt:'2025-02-13T10:00:00Z'},
+    {userId:'stu1',courseId:'c5',lessonId:'l5c',completedAt:'2025-02-15T10:00:00Z'},
+    {userId:'stu1',courseId:'c5',lessonId:'l5d',completedAt:'2025-03-01T10:00:00Z'},
+    {userId:'stu1',courseId:'c5',lessonId:'l5e',completedAt:'2025-03-15T14:00:00Z'},
+    {userId:'stu2',courseId:'c1',lessonId:'l1a',completedAt:'2025-02-04T10:00:00Z'},
+    {userId:'stu2',courseId:'c2',lessonId:'l2a',completedAt:'2025-02-07T10:00:00Z'},
+    {userId:'stu2',courseId:'c2',lessonId:'l2b',completedAt:'2025-02-09T10:00:00Z'},
+    {userId:'stu2',courseId:'c4',lessonId:'l4a',completedAt:'2025-02-13T10:00:00Z'},
+    {userId:'stu2',courseId:'c4',lessonId:'l4b',completedAt:'2025-02-15T10:00:00Z'},
+    {userId:'stu2',courseId:'c4',lessonId:'l4c',completedAt:'2025-02-18T10:00:00Z'},
+    {userId:'stu3',courseId:'c2',lessonId:'l2a',completedAt:'2025-02-09T10:00:00Z'},
+    {userId:'stu3',courseId:'c2',lessonId:'l2b',completedAt:'2025-02-11T10:00:00Z'},
+    {userId:'stu3',courseId:'c2',lessonId:'l2c',completedAt:'2025-02-14T10:00:00Z'},
+    {userId:'stu3',courseId:'c2',lessonId:'l2d',completedAt:'2025-02-16T10:00:00Z'},
+    {userId:'stu3',courseId:'c2',lessonId:'l2e',completedAt:'2025-03-10T12:00:00Z'},
+    {userId:'stu3',courseId:'c6',lessonId:'l6a',completedAt:'2025-02-16T10:00:00Z'},
+    {userId:'stu3',courseId:'c6',lessonId:'l6b',completedAt:'2025-02-18T10:00:00Z'},
+    {userId:'stu3',courseId:'c4',lessonId:'l4a',completedAt:'2025-02-19T10:00:00Z'}
+  ];
+  DB.set(KEYS.users,users);
+  DB.set(KEYS.courses,courses);
+  DB.set(KEYS.enrollments,enrollments);
+  DB.set(KEYS.progress,progress);
+  DB.setStr(KEYS.currentUser,'stu1');
+}
+// ===== HELPERS =====
+function getUsers(){return DB.get(KEYS.users)}
+function getCourses(){return DB.get(KEYS.courses)}
+function getEnrollments(){return DB.get(KEYS.enrollments)}
+function getProgress(){return DB.get(KEYS.progress)}
+function getCurrentUser(){const id=DB.getStr(KEYS.currentUser);return getUsers().find(u=>u.id===id)||getUsers()[0]}
+function getUserEnrollments(userId){return getEnrollments().filter(e=>e.userId===userId)}
+function getCourseEnrollments(courseId){return getEnrollments().filter(e=>e.courseId===courseId)}
+function getUserCourseEnrollment(userId,courseId){return getEnrollments().find(e=>e.userId===userId&&e.courseId===courseId)}
+function getUserProgress(userId,courseId){return getProgress().filter(p=>p.userId===userId&&p.courseId===courseId)}
+function getCourseById(id){return getCourses().find(c=>c.id===id)}
+function getCompletionPct(userId,courseId){const c=getCourseById(courseId);if(!c||!c.lessons.length)return 0;const p=getUserProgress(userId,courseId);return Math.round((p.length/c.lessons.length)*100)}
+function formatDate(iso){if(!iso)return'—';return new Date(iso).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}
+// ===== TOAST SYSTEM =====
+function showToast(msg,type='info'){
+  const c=document.getElementById('toastContainer');
+  const icons={success:'✅',error:'❌',info:'💡'};
+  const t=document.createElement('div');
+  t.className='toast '+type;
+  t.innerHTML=`<span class="toast-icon">${icons[type]||'💡'}</span><span class="toast-msg">${msg}</span><span class="toast-close" onclick="this.parentElement.remove()">✕</span>`;
+  c.appendChild(t);
+  setTimeout(()=>{if(t.parentElement)t.remove()},3000);
+}
+// ===== MODAL SYSTEM =====
+function showModal(html){document.getElementById('modal').innerHTML=html;document.getElementById('modalOverlay').classList.add('show')}
+function hideModal(){document.getElementById('modalOverlay').classList.remove('show')}
+document.getElementById('modalOverlay').addEventListener('click',e=>{if(e.target===e.currentTarget)hideModal()});
+
+// ===== RENDER SIDEBAR =====
+function renderSidebar(){
+  const user = getCurrentUser();
+  const enrollCount = getUserEnrollments(user.id).filter(e=>e.status==='active').length;
+  const studentNav = [
+    {id:'dashboard',icon:'🏠',label:'Dashboard'},
+    {id:'catalog',icon:'📚',label:'Course Catalog'},
+    {id:'my-courses',icon:'🎓',label:'My Courses',badge:enrollCount},
+    {id:'progress',icon:'📊',label:'My Progress'}
+  ];
+  const adminNav = [
+    {id:'admin-dashboard',icon:'📈',label:'Overview'},
+    {id:'admin-courses',icon:'📋',label:'Manage Courses'},
+    {id:'admin-enrollments',icon:'👥',label:'Enrollments'},
+    {id:'admin-reports',icon:'📑',label:'Reports & Analytics'}
+  ];
+  const navItems = App.role==='student' ? studentNav : adminNav;
+  document.getElementById('sidebar').innerHTML = `
+    <div class="sidebar-header">
+      <div class="sidebar-logo"><div class="logo-icon">E</div><h2>EduFlow</h2></div>
+    </div>
+    <div class="sidebar-role">
+      <button class="role-btn ${App.role==='student'?'active':''}" onclick="switchRole('student')">🎓 Student</button>
+      <button class="role-btn ${App.role==='admin'?'active':''}" onclick="switchRole('admin')">⚙️ Admin</button>
+    </div>
+    <nav class="sidebar-nav">
+      ${navItems.map(n=>`<div class="nav-item ${App.view===n.id?'active':''}" onclick="navigate('${n.id}')">
+        <span class="nav-icon">${n.icon}</span>${n.label}${n.badge?`<span class="badge">${n.badge}</span>`:''}
+      </div>`).join('')}
+    </nav>
+    <div class="sidebar-user">
+      <div class="user-avatar">${user.avatar}</div>
+      <div class="user-info"><div class="name">${user.name}</div><div class="email">${user.email}</div></div>
+    </div>`;
+}
+// ===== RENDER TOPBAR =====
+function renderTopbar(){
+  const titles = {dashboard:'Dashboard',catalog:'Course Catalog','my-courses':'My Courses',progress:'My Progress',
+    'course-detail':'Course Detail','admin-dashboard':'Admin Overview','admin-courses':'Manage Courses',
+    'admin-enrollments':'Enrollments','admin-reports':'Reports & Analytics'};
+  const showSearch = ['catalog','admin-courses','admin-enrollments'].includes(App.view);
+  const showAdd = App.view==='admin-courses';
+  document.getElementById('topbar').innerHTML = `
+    <div class="topbar-left"><h1>${titles[App.view]||'EduFlow'}</h1></div>
+    <div class="topbar-right">
+      ${showSearch?`<div class="search-box"><span class="search-icon">🔍</span><input type="text" placeholder="Search..." value="${App.searchQuery}" oninput="App.searchQuery=this.value;renderContent()"></div>`:''}
+      ${showAdd?'<button class="btn btn-primary" onclick="openCourseModal()">＋ Add Course</button>':''}
+      ${App.view==='admin-enrollments'?'<button class="btn btn-secondary" onclick="exportCSV()">📥 Export CSV</button>':''}
+      ${App.view==='admin-reports'?'<button class="btn btn-secondary" onclick="exportCSV()">📥 CSV</button><button class="btn btn-primary" onclick="exportHTMLReport()">📄 Export Report</button>':''}
+    </div>`;
+}
+// ===== NAVIGATION =====
+function navigate(view){App.view=view;App.searchQuery='';App.categoryFilter='All';render()}
+function switchRole(role){
+  App.role=role;
+  if(role==='student'){App.view='dashboard';const stu=getUsers().find(u=>u.role==='student');if(stu)DB.setStr(KEYS.currentUser,stu.id)}
+  else{App.view='admin-dashboard';const adm=getUsers().find(u=>u.role==='admin');if(adm)DB.setStr(KEYS.currentUser,adm.id)}
+  render();
+}
+function render(){renderSidebar();renderTopbar();renderContent()}
+// ===== RENDER CONTENT =====
+function renderContent(){
+  const el = document.getElementById('content');
+  const views = {
+    dashboard:renderStudentDashboard, catalog:renderCatalog, 'my-courses':renderMyCourses,
+    progress:renderMyProgress, 'course-detail':renderCourseDetail,
+    'admin-dashboard':renderAdminDashboard, 'admin-courses':renderAdminCourses,
+    'admin-enrollments':renderAdminEnrollments, 'admin-reports':renderAdminReports
+  };
+  const fn = views[App.view];
+  if(fn) fn(el); else el.innerHTML='<div class="empty-state"><div class="empty-icon">🚧</div><h3>View not found</h3></div>';
+}
+// ===== STUDENT DASHBOARD =====
+function renderStudentDashboard(el){
+  const user = getCurrentUser();
+  const enrolls = getUserEnrollments(user.id);
+  const completed = enrolls.filter(e=>e.status==='completed').length;
+  const inProgress = enrolls.filter(e=>e.status==='active').length;
+  const allProgress = enrolls.map(e=>getCompletionPct(user.id,e.courseId));
+  const overall = allProgress.length ? Math.round(allProgress.reduce((a,b)=>a+b,0)/allProgress.length) : 0;
+  const recentEnrolls = enrolls.filter(e=>e.status==='active').slice(-3).reverse();
+  const allCourses = getCourses().filter(c=>c.status==='active');
+  const enrolledIds = enrolls.map(e=>e.courseId);
+  const recommended = allCourses.filter(c=>!enrolledIds.includes(c.id)).slice(0,3);
+  el.innerHTML = `<div class="slide-up">
+    <div class="stats-grid">
+      <div class="stat-card gold"><div class="stat-icon">📚</div><div class="stat-value">${enrolls.length}</div><div class="stat-label">Enrolled Courses</div></div>
+      <div class="stat-card emerald"><div class="stat-icon">✅</div><div class="stat-value">${completed}</div><div class="stat-label">Completed</div></div>
+      <div class="stat-card violet"><div class="stat-icon">⏳</div><div class="stat-value">${inProgress}</div><div class="stat-label">In Progress</div></div>
+      <div class="stat-card rose"><div class="stat-icon">📈</div><div class="stat-value">${overall}%</div><div class="stat-label">Overall Progress</div></div>
+    </div>
+    ${recentEnrolls.length?`<div class="section-header"><h3>🎯 Continue Learning</h3></div>
+    <div class="cards-grid" style="margin-bottom:32px">${recentEnrolls.map(e=>{
+      const c=getCourseById(e.courseId);if(!c)return'';const pct=getCompletionPct(user.id,c.id);
+      return renderCourseCard(c,{progress:pct,enrolled:true});
+    }).join('')}</div>`:''}
+    ${recommended.length?`<div class="section-header"><h3>💡 Recommended for You</h3></div>
+    <div class="cards-grid">${recommended.map(c=>renderCourseCard(c,{})).join('')}</div>`:''}
+  </div>`;
+}
+// ===== COURSE CARD RENDERER =====
+function renderCourseCard(c,opts={}){
+  return `<div class="course-card" onclick="App.selectedCourseId='${c.id}';navigate('course-detail')">
+    <div class="card-thumb" style="background:linear-gradient(135deg,${c.color}22,${c.color}08)">
+      ${c.thumbnail}
+      ${opts.enrolled?'<span class="enrolled-badge">✓ Enrolled</span>':''}
+      ${opts.showStatus?`<span class="status-badge ${c.status}">${c.status}</span>`:''}
+    </div>
+    <div class="card-body">
+      <div class="card-category">${c.category}</div>
+      <h3>${c.title}</h3>
+      <div class="card-meta">
+        <span>👤 ${c.instructor.split(' ').pop()}</span>
+        <span>📖 ${c.lessons.length} lessons</span>
+        <span>⏱ ${c.duration}h</span>
+      </div>
+      ${opts.progress!==undefined?`<div class="card-progress"><div class="progress-bar"><div class="progress-fill" style="width:${opts.progress}%"></div></div><div class="progress-text">${opts.progress}% complete</div></div>`:''}
+    </div>
+  </div>`;
+}
+// ===== CATALOG =====
+function renderCatalog(el){
+  const user = getCurrentUser();
+  const enrolledIds = getUserEnrollments(user.id).map(e=>e.courseId);
+  let courses = getCourses().filter(c=>c.status==='active');
+  const categories = ['All',...new Set(courses.map(c=>c.category))];
+  if(App.categoryFilter!=='All') courses=courses.filter(c=>c.category===App.categoryFilter);
+  if(App.searchQuery){const q=App.searchQuery.toLowerCase();courses=courses.filter(c=>c.title.toLowerCase().includes(q)||c.instructor.toLowerCase().includes(q)||c.description.toLowerCase().includes(q))}
+  el.innerHTML = `<div class="slide-up">
+    <div class="filter-chips">${categories.map(cat=>`<button class="chip ${App.categoryFilter===cat?'active':''}" onclick="App.categoryFilter='${cat}';renderContent()">${cat==='All'?'🌐 ':CAT_EMOJIS[cat]+' '}${cat}</button>`).join('')}</div>
+    ${courses.length?`<div class="cards-grid">${courses.map(c=>renderCourseCard(c,{enrolled:enrolledIds.includes(c.id),progress:enrolledIds.includes(c.id)?getCompletionPct(user.id,c.id):undefined})).join('')}</div>`:
+    '<div class="empty-state"><div class="empty-icon">🔍</div><h3>No courses found</h3><p>Try a different search or filter.</p></div>'}
+  </div>`;
+}
+// ===== MY COURSES =====
+function renderMyCourses(el){
+  const user=getCurrentUser();
+  const enrolls=getUserEnrollments(user.id);
+  if(!enrolls.length){el.innerHTML='<div class="empty-state"><div class="empty-icon">📚</div><h3>No enrolled courses yet</h3><p>Browse the catalog and enroll in courses to get started.</p><button class="btn btn-primary" onclick="navigate(\'catalog\')">Browse Catalog</button></div>';return}
+  el.innerHTML=`<div class="slide-up"><div class="cards-grid">${enrolls.map(e=>{const c=getCourseById(e.courseId);if(!c)return'';
+    return renderCourseCard(c,{enrolled:true,progress:getCompletionPct(user.id,c.id)});}).join('')}</div></div>`;
+}
+// ===== MY PROGRESS =====
+function renderMyProgress(el){
+  const user=getCurrentUser();
+  const enrolls=getUserEnrollments(user.id);
+  const totalLessons=enrolls.reduce((a,e)=>{const c=getCourseById(e.courseId);return a+(c?getUserProgress(user.id,c.id).length:0)},0);
+  const totalHours=enrolls.reduce((a,e)=>{const c=getCourseById(e.courseId);if(!c)return a;const done=getUserProgress(user.id,c.id);return a+done.reduce((s,p)=>{const les=c.lessons.find(l=>l.id===p.lessonId);return s+(les?les.duration:0)},0)},0);
+  const completed=enrolls.filter(e=>e.status==='completed').length;
+  const sorted=[...enrolls].sort((a,b)=>getCompletionPct(user.id,b.courseId)-getCompletionPct(user.id,a.courseId));
+  el.innerHTML=`<div class="slide-up">
+    <div class="stats-grid">
+      <div class="stat-card gold"><div class="stat-icon">📚</div><div class="stat-value">${enrolls.length}</div><div class="stat-label">Total Enrolled</div></div>
+      <div class="stat-card emerald"><div class="stat-icon">✅</div><div class="stat-value">${completed}</div><div class="stat-label">Completed</div></div>
+      <div class="stat-card violet"><div class="stat-icon">📝</div><div class="stat-value">${totalLessons}</div><div class="stat-label">Lessons Done</div></div>
+      <div class="stat-card rose"><div class="stat-icon">⏱</div><div class="stat-value">${Math.round(totalHours/60)}h</div><div class="stat-label">Hours Learned</div></div>
+    </div>
+    <div class="table-container"><table><thead><tr><th>Course</th><th>Category</th><th>Progress</th><th>Status</th></tr></thead><tbody>
+    ${sorted.map(e=>{const c=getCourseById(e.courseId);if(!c)return'';const pct=getCompletionPct(user.id,c.id);const done=getUserProgress(user.id,c.id).length;
+      return`<tr style="cursor:pointer" onclick="App.selectedCourseId='${c.id}';navigate('course-detail')">
+        <td style="display:flex;align-items:center;gap:10px"><span style="font-size:24px">${c.thumbnail}</span><span style="font-weight:600">${c.title}</span></td>
+        <td><span style="color:${CAT_COLORS[c.category]}">${c.category}</span></td>
+        <td style="min-width:180px"><div style="display:flex;align-items:center;gap:8px"><div class="progress-bar" style="flex:1"><div class="progress-fill" style="width:${pct}%"></div></div><span style="font-family:var(--font-mono);font-size:12px;min-width:40px">${pct}%</span></div><div style="font-size:11px;color:var(--text-muted)">${done}/${c.lessons.length} lessons</div></td>
+        <td>${e.status==='completed'?`<span class="status-pill completed">Completed</span><div style="font-size:11px;color:var(--success);margin-top:4px">${formatDate(e.completedAt)}</div>`:`<span class="status-pill active">In Progress</span>`}</td>
+      </tr>`}).join('')}
+    </tbody></table></div></div>`;
+}
+
+// ===== COURSE DETAIL =====
+function renderCourseDetail(el){
+  const c = getCourseById(App.selectedCourseId);
+  if(!c){el.innerHTML='<div class="empty-state"><div class="empty-icon">❓</div><h3>Course not found</h3><button class="btn btn-primary" onclick="navigate(\'catalog\')">Back to Catalog</button></div>';return}
+  const user = getCurrentUser();
+  const enrollment = getUserCourseEnrollment(user.id, c.id);
+  const isEnrolled = !!enrollment;
+  const progressRecs = getUserProgress(user.id, c.id);
+  const completedIds = progressRecs.map(p=>p.lessonId);
+  const pct = isEnrolled ? getCompletionPct(user.id, c.id) : 0;
+  const totalEnrolled = getCourseEnrollments(c.id).length;
+  const isCompleted = enrollment && enrollment.status==='completed';
+  const typeIcons = {video:'🎬',reading:'📖',quiz:'📝'};
+  el.innerHTML = `<div class="detail-view slide-up">
+    <button class="btn btn-secondary btn-sm" onclick="navigate(App.role==='student'?'catalog':'admin-courses')" style="margin-bottom:20px">← Back</button>
+    <div class="detail-header">
+      <div class="detail-thumb" style="background:linear-gradient(135deg,${c.color}33,${c.color}11)">${c.thumbnail}</div>
+      <div class="detail-info">
+        <div class="detail-category">${c.category}</div>
+        <h1>${c.title}</h1>
+        <div class="detail-desc">${c.description}</div>
+        <div class="detail-meta">
+          <div class="meta-item">👤 <span>${c.instructor}</span></div>
+          <div class="meta-item">📖 <span>${c.lessons.length} lessons</span></div>
+          <div class="meta-item">⏱ <span>${c.duration} hours</span></div>
+          <div class="meta-item">👥 <span>${totalEnrolled} enrolled</span></div>
+          <div class="meta-item"><span class="status-pill ${c.status}">${c.status}</span></div>
+        </div>
+      </div>
+    </div>
+    ${isEnrolled?`<div class="detail-progress">
+      <h3>Your Progress</h3>
+      <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+      <div class="progress-pct">${pct}%</div>
+      <div style="font-size:13px;color:var(--text-muted)">${completedIds.length} of ${c.lessons.length} lessons completed</div>
+    </div>`:`<div style="margin-bottom:24px"><button class="btn btn-primary" onclick="enrollCourse('${c.id}')" style="padding:14px 32px;font-size:15px">🎓 Enroll Now — It's Free</button></div>`}
+    <div class="section-header"><h3>📖 Course Lessons</h3></div>
+    <div class="lessons-list">
+      ${c.lessons.map((les,i)=>{
+        const done = completedIds.includes(les.id);
+        return `<div class="lesson-item">
+          ${isEnrolled?`<div class="lesson-check ${done?'completed':''}" onclick="event.stopPropagation();toggleLesson('${c.id}','${les.id}')">${done?'✓':''}</div>`
+          :`<div class="lesson-check locked">🔒</div>`}
+          <div class="lesson-type">${typeIcons[les.type]||'📄'}</div>
+          <div class="lesson-info"><div class="lesson-title">${les.title}</div><div class="lesson-dur">${les.duration} min · ${les.type}</div></div>
+          <span style="font-size:12px;color:var(--text-muted);font-family:var(--font-mono)">#${i+1}</span>
+        </div>`;
+      }).join('')}
+    </div>
+    ${isCompleted?`<div class="certificate">
+      <div class="cert-icon">🏆</div>
+      <h2>Certificate of Completion</h2>
+      <div class="cert-subtitle">This certifies that</div>
+      <div class="cert-name">${user.name}</div>
+      <div style="font-size:14px;color:var(--text-muted);margin:4px 0">has successfully completed</div>
+      <div class="cert-course">${c.title}</div>
+      <div class="cert-date">Completed on ${formatDate(enrollment.completedAt)}</div>
+    </div>`:''}
+  </div>`;
+}
+// ===== ENROLL =====
+function enrollCourse(courseId){
+  const user = getCurrentUser();
+  const existing = getUserCourseEnrollment(user.id, courseId);
+  if(existing){showToast('You are already enrolled in this course.','info');return}
+  const enrollments = getEnrollments();
+  enrollments.push({id:uid(),userId:user.id,courseId,enrolledAt:now(),completedAt:null,status:'active'});
+  DB.set(KEYS.enrollments, enrollments);
+  showToast('Successfully enrolled! Start learning now.','success');
+  render();
+}
+// ===== TOGGLE LESSON =====
+function toggleLesson(courseId, lessonId){
+  const user = getCurrentUser();
+  let progress = getProgress();
+  const idx = progress.findIndex(p=>p.userId===user.id&&p.courseId===courseId&&p.lessonId===lessonId);
+  if(idx>=0){
+    progress.splice(idx,1);
+    DB.set(KEYS.progress, progress);
+    // Check if was completed, revert
+    let enrollments = getEnrollments();
+    const eIdx = enrollments.findIndex(e=>e.userId===user.id&&e.courseId===courseId);
+    if(eIdx>=0 && enrollments[eIdx].status==='completed'){
+      enrollments[eIdx].status='active';enrollments[eIdx].completedAt=null;
+      DB.set(KEYS.enrollments, enrollments);
+    }
+  } else {
+    progress.push({userId:user.id,courseId,lessonId,completedAt:now()});
+    DB.set(KEYS.progress, progress);
+    // Check completion
+    const course = getCourseById(courseId);
+    const userProg = progress.filter(p=>p.userId===user.id&&p.courseId===courseId);
+    if(course && userProg.length===course.lessons.length){
+      let enrollments = getEnrollments();
+      const eIdx = enrollments.findIndex(e=>e.userId===user.id&&e.courseId===courseId);
+      if(eIdx>=0 && enrollments[eIdx].status!=='completed'){
+        enrollments[eIdx].status='completed';enrollments[eIdx].completedAt=now();
+        DB.set(KEYS.enrollments, enrollments);
+        showToast('🏆 Course completed! Certificate earned!','success');
+      }
+    }
+  }
+  renderContent();
+}
+
+// ===== ADMIN DASHBOARD =====
+function renderAdminDashboard(el){
+  const courses=getCourses();const enrollments=getEnrollments();const users=getUsers().filter(u=>u.role==='student');
+  const completions=enrollments.filter(e=>e.status==='completed').length;
+  const rate=enrollments.length?Math.round((completions/enrollments.length)*100):0;
+  el.innerHTML=`<div class="slide-up">
+    <div class="stats-grid">
+      <div class="stat-card gold"><div class="stat-icon">📚</div><div class="stat-value">${courses.length}</div><div class="stat-label">Total Courses</div></div>
+      <div class="stat-card emerald"><div class="stat-icon">👥</div><div class="stat-value">${users.length}</div><div class="stat-label">Total Students</div></div>
+      <div class="stat-card violet"><div class="stat-icon">📝</div><div class="stat-value">${enrollments.length}</div><div class="stat-label">Total Enrollments</div></div>
+      <div class="stat-card rose"><div class="stat-icon">🏆</div><div class="stat-value">${rate}%</div><div class="stat-label">Completion Rate</div></div>
+    </div>
+    <div class="charts-grid">
+      <div class="chart-container"><h3>📊 Enrollments per Course</h3><canvas id="barChart"></canvas></div>
+      <div class="chart-container"><h3>🍩 Category Distribution</h3><canvas id="donutChart"></canvas><div id="donutLegend" class="legend"></div></div>
+    </div>
+    <div class="section-header"><h3>📋 Course Summary</h3></div>
+    <div class="table-container"><table><thead><tr><th>Course</th><th>Category</th><th>Enrolled</th><th>Completed</th><th>Rate</th><th>Status</th></tr></thead><tbody>
+    ${courses.sort((a,b)=>getCourseEnrollments(b.id).length-getCourseEnrollments(a.id).length).map(c=>{
+      const ce=getCourseEnrollments(c.id);const comp=ce.filter(e=>e.status==='completed').length;const r=ce.length?Math.round((comp/ce.length)*100):0;
+      return`<tr><td style="display:flex;align-items:center;gap:8px"><span style="font-size:20px">${c.thumbnail}</span><span style="font-weight:600">${c.title}</span></td>
+        <td><span style="color:${CAT_COLORS[c.category]}">${c.category}</span></td><td>${ce.length}</td><td>${comp}</td>
+        <td><div style="display:flex;align-items:center;gap:6px"><div class="progress-bar" style="width:80px"><div class="progress-fill" style="width:${r}%"></div></div><span style="font-family:var(--font-mono);font-size:12px">${r}%</span></div></td>
+        <td><span class="status-pill ${c.status}">${c.status}</span></td></tr>`}).join('')}
+    </tbody></table></div>
+  </div>`;
+  setTimeout(()=>{drawBarChart();drawDonutChart()},50);
+}
+// ===== ADMIN COURSES =====
+function renderAdminCourses(el){
+  let courses=getCourses();
+  if(App.searchQuery){const q=App.searchQuery.toLowerCase();courses=courses.filter(c=>c.title.toLowerCase().includes(q)||c.instructor.toLowerCase().includes(q))}
+  el.innerHTML=`<div class="slide-up">
+    ${courses.length?`<div class="table-container"><table><thead><tr><th></th><th>Title</th><th>Instructor</th><th>Category</th><th>Lessons</th><th>Enrolled</th><th>Status</th><th>Actions</th></tr></thead><tbody>
+    ${courses.map(c=>`<tr>
+      <td style="font-size:24px;width:40px">${c.thumbnail}</td>
+      <td style="font-weight:600;cursor:pointer" onclick="App.selectedCourseId='${c.id}';navigate('course-detail')">${c.title}</td>
+      <td>${c.instructor}</td>
+      <td><span style="color:${CAT_COLORS[c.category]}">${c.category}</span></td>
+      <td>${c.lessons.length}</td>
+      <td>${getCourseEnrollments(c.id).length}</td>
+      <td><span class="status-pill ${c.status}">${c.status}</span></td>
+      <td style="white-space:nowrap"><button class="btn-icon" onclick="event.stopPropagation();openCourseModal('${c.id}')" title="Edit" aria-label="Edit course">✏️</button>
+        <button class="btn-icon" onclick="event.stopPropagation();confirmDeleteCourse('${c.id}')" title="Delete" aria-label="Delete course" style="margin-left:6px">🗑️</button></td>
+    </tr>`).join('')}
+    </tbody></table></div>`:
+    '<div class="empty-state"><div class="empty-icon">📚</div><h3>No courses yet</h3><p>Create your first course to get started.</p><button class="btn btn-primary" onclick="openCourseModal()">＋ Add Course</button></div>'}
+  </div>`;
+}
+// ===== ADMIN ENROLLMENTS =====
+function renderAdminEnrollments(el){
+  let enrollments=getEnrollments();
+  if(App.searchQuery){const q=App.searchQuery.toLowerCase();enrollments=enrollments.filter(e=>{const u=getUsers().find(x=>x.id===e.userId);const c=getCourseById(e.courseId);return(u&&u.name.toLowerCase().includes(q))||(c&&c.title.toLowerCase().includes(q))})}
+  el.innerHTML=`<div class="slide-up">
+    ${enrollments.length?`<div class="table-container"><table><thead><tr><th>Student</th><th>Course</th><th>Enrolled On</th><th>Status</th><th>Progress</th></tr></thead><tbody>
+    ${enrollments.map(e=>{const u=getUsers().find(x=>x.id===e.userId)||{name:'Unknown',avatar:'??'};const c=getCourseById(e.courseId);if(!c)return'';const pct=getCompletionPct(e.userId,c.id);
+      return`<tr><td style="display:flex;align-items:center;gap:8px"><div class="user-avatar" style="width:28px;height:28px;font-size:10px">${u.avatar}</div><span style="font-weight:500">${u.name}</span></td>
+        <td style="display:flex;align-items:center;gap:8px"><span style="font-size:18px">${c.thumbnail}</span>${c.title}</td>
+        <td style="font-family:var(--font-mono);font-size:12px">${formatDate(e.enrolledAt)}</td>
+        <td><span class="status-pill ${e.status}">${e.status}</span></td>
+        <td style="min-width:120px"><div style="display:flex;align-items:center;gap:6px"><div class="progress-bar" style="flex:1"><div class="progress-fill" style="width:${pct}%"></div></div><span style="font-family:var(--font-mono);font-size:11px">${pct}%</span></div></td>
+      </tr>`}).join('')}
+    </tbody></table></div>`:
+    '<div class="empty-state"><div class="empty-icon">👥</div><h3>No enrollments yet</h3><p>Enrollments will appear here when students enroll in courses.</p></div>'}
+  </div>`;
+}
+// ===== ADMIN REPORTS =====
+function renderAdminReports(el){
+  const courses=getCourses();const enrollments=getEnrollments();const users=getUsers().filter(u=>u.role==='student');
+  const completions=enrollments.filter(e=>e.status==='completed').length;
+  const rate=enrollments.length?Math.round((completions/enrollments.length)*100):0;
+  const categories=[...new Set(courses.map(c=>c.category))];
+  const catData=categories.map(cat=>{
+    const cc=courses.filter(c=>c.category===cat);const cids=cc.map(c=>c.id);
+    const ce=enrollments.filter(e=>cids.includes(e.courseId));const comp=ce.filter(e=>e.status==='completed').length;
+    return{cat,courses:cc.length,enrollments:ce.length,completions:comp,rate:ce.length?Math.round((comp/ce.length)*100):0};
+  });
+  const leaderboard=users.map(u=>{
+    const ue=getUserEnrollments(u.id);const lessons=getProgress().filter(p=>p.userId===u.id).length;
+    const comp=ue.filter(e=>e.status==='completed').length;
+    return{...u,enrolled:ue.length,completed:comp,lessons};
+  }).sort((a,b)=>b.lessons-a.lessons);
+  el.innerHTML=`<div class="slide-up">
+    <div class="stats-grid">
+      <div class="stat-card gold"><div class="stat-icon">📚</div><div class="stat-value">${courses.length}</div><div class="stat-label">Total Courses</div></div>
+      <div class="stat-card emerald"><div class="stat-icon">👥</div><div class="stat-value">${users.length}</div><div class="stat-label">Total Students</div></div>
+      <div class="stat-card violet"><div class="stat-icon">📝</div><div class="stat-value">${enrollments.length}</div><div class="stat-label">Total Enrollments</div></div>
+      <div class="stat-card rose"><div class="stat-icon">🏆</div><div class="stat-value">${rate}%</div><div class="stat-label">Completion Rate</div></div>
+    </div>
+    <div class="charts-grid">
+      <div class="chart-container"><h3>📊 Enrollments per Course</h3><canvas id="barChart"></canvas></div>
+      <div class="chart-container"><h3>🍩 Category Distribution</h3><canvas id="donutChart"></canvas><div id="donutLegend" class="legend"></div></div>
+    </div>
+    <div class="section-header"><h3>📈 Category Performance</h3></div>
+    <div class="table-container" style="margin-bottom:28px"><table><thead><tr><th>Category</th><th>Courses</th><th>Enrollments</th><th>Completions</th><th>Rate</th></tr></thead><tbody>
+    ${catData.map(d=>`<tr><td style="font-weight:600;color:${CAT_COLORS[d.cat]}">${CAT_EMOJIS[d.cat]} ${d.cat}</td><td>${d.courses}</td><td>${d.enrollments}</td><td>${d.completions}</td>
+      <td><div style="display:flex;align-items:center;gap:6px"><div class="progress-bar" style="width:80px"><div class="progress-fill" style="width:${d.rate}%"></div></div><span style="font-family:var(--font-mono);font-size:12px">${d.rate}%</span></div></td></tr>`).join('')}
+    </tbody></table></div>
+    <div class="section-header"><h3>🏅 Student Leaderboard</h3></div>
+    <div class="table-container"><table><thead><tr><th>Rank</th><th>Student</th><th>Enrolled</th><th>Completed</th><th>Lessons Done</th></tr></thead><tbody>
+    ${leaderboard.map((u,i)=>`<tr><td style="font-weight:700;color:var(--accent);font-family:var(--font-mono)">#${i+1}</td>
+      <td style="display:flex;align-items:center;gap:8px"><div class="user-avatar" style="width:28px;height:28px;font-size:10px">${u.avatar}</div><span style="font-weight:500">${u.name}</span></td>
+      <td>${u.enrolled}</td><td>${u.completed}</td><td style="font-weight:600;font-family:var(--font-mono)">${u.lessons}</td></tr>`).join('')}
+    </tbody></table></div>
+  </div>`;
+  setTimeout(()=>{drawBarChart();drawDonutChart()},50);
+}
+
+// ===== CHARTS =====
+function drawBarChart(){
+  const canvas=document.getElementById('barChart');if(!canvas)return;
+  const courses=getCourses().filter(c=>c.status==='active');
+  const data=courses.map(c=>({label:c.title.length>18?c.title.slice(0,18)+'…':c.title,value:getCourseEnrollments(c.id).length,color:c.color}));
+  if(!data.length)return;
+  const dpr=window.devicePixelRatio||1;const w=canvas.parentElement.clientWidth-44;const h=260;
+  canvas.width=w*dpr;canvas.height=h*dpr;canvas.style.width=w+'px';canvas.style.height=h+'px';
+  const ctx=canvas.getContext('2d');ctx.scale(dpr,dpr);
+  const maxVal=Math.max(...data.map(d=>d.value),1);const barW=Math.min(48,((w-60)/data.length)-12);const gap=(w-60-barW*data.length)/(data.length+1);
+  const chartH=h-50;const baseY=chartH;
+  // Grid lines
+  ctx.strokeStyle='#1e293b';ctx.lineWidth=1;
+  for(let i=0;i<=4;i++){const y=baseY-(chartH-20)*(i/4);ctx.beginPath();ctx.moveTo(50,y);ctx.lineTo(w,y);ctx.stroke();
+    ctx.fillStyle='#64748b';ctx.font='11px DM Mono';ctx.textAlign='right';ctx.fillText(Math.round(maxVal*i/4),45,y+4)}
+  // Bars
+  data.forEach((d,i)=>{
+    const x=60+gap+(barW+gap)*i;const barH=Math.max(4,(chartH-20)*(d.value/maxVal));const y=baseY-barH;
+    const grad=ctx.createLinearGradient(x,y,x,baseY);grad.addColorStop(0,d.color);grad.addColorStop(1,d.color+'66');
+    ctx.fillStyle=grad;ctx.beginPath();ctx.roundRect(x,y,barW,barH,4);ctx.fill();
+    // Value label
+    ctx.fillStyle='#f1f5f9';ctx.font='bold 12px DM Mono';ctx.textAlign='center';ctx.fillText(d.value,x+barW/2,y-8);
+    // Name label
+    ctx.fillStyle='#94a3b8';ctx.font='10px DM Sans';ctx.save();ctx.translate(x+barW/2,baseY+12);
+    ctx.fillText(d.label.slice(0,10),0,0);ctx.restore()
+  });
+}
+function drawDonutChart(){
+  const canvas=document.getElementById('donutChart');if(!canvas)return;
+  const categories=[...new Set(getCourses().map(c=>c.category))];
+  const data=categories.map(cat=>{const cids=getCourses().filter(c=>c.category===cat).map(c=>c.id);
+    return{label:cat,value:getEnrollments().filter(e=>cids.includes(e.courseId)).length,color:CAT_COLORS[cat]||'#666'}}).filter(d=>d.value>0);
+  if(!data.length)return;
+  const dpr=window.devicePixelRatio||1;const size=220;
+  canvas.width=size*dpr;canvas.height=size*dpr;canvas.style.width=size+'px';canvas.style.height=size+'px';
+  const ctx=canvas.getContext('2d');ctx.scale(dpr,dpr);
+  const cx=size/2,cy=size/2,r=85,inner=55;const total=data.reduce((a,d)=>a+d.value,0);let angle=-Math.PI/2;
+  data.forEach(d=>{const sweep=(d.value/total)*Math.PI*2;
+    ctx.beginPath();ctx.arc(cx,cy,r,angle,angle+sweep);ctx.arc(cx,cy,inner,angle+sweep,angle,true);ctx.closePath();
+    ctx.fillStyle=d.color;ctx.fill();angle+=sweep});
+  // Center text
+  ctx.fillStyle='#f1f5f9';ctx.font='bold 24px DM Mono';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(total,cx,cy-8);
+  ctx.fillStyle='#94a3b8';ctx.font='11px DM Sans';ctx.fillText('Total',cx,cy+12);
+  // Legend
+  const legendEl=document.getElementById('donutLegend');
+  if(legendEl)legendEl.innerHTML=data.map(d=>`<div class="legend-item"><div class="legend-dot" style="background:${d.color}"></div>${d.label} (${d.value})</div>`).join('');
+}
+// ===== COURSE CRUD MODAL =====
+function openCourseModal(courseId){
+  App.editingCourseId=courseId||null;
+  const c=courseId?getCourseById(courseId):null;
+  const title=c?'Edit Course':'Create New Course';
+  const lessons=c?c.lessons:[{id:uid(),title:'',duration:30,type:'video'}];
+  showModal(`<div class="modal-header"><h2>${title}</h2><div class="modal-close" onclick="hideModal()">✕</div></div>
+    <div class="modal-body">
+      <div class="form-row"><div class="form-group"><label>Course Title *</label><input id="fTitle" value="${c?c.title:''}" placeholder="e.g. Full-Stack Web Development"></div>
+        <div class="form-group"><label>Instructor *</label><input id="fInstructor" value="${c?c.instructor:''}" placeholder="e.g. Prof. John Smith"></div></div>
+      <div class="form-group"><label>Description *</label><textarea id="fDesc" rows="3" placeholder="Course description...">${c?c.description:''}</textarea></div>
+      <div class="form-row">
+        <div class="form-group"><label>Category *</label><select id="fCategory">
+          ${['Technology','Business','Design','Science','Arts','Mathematics'].map(cat=>`<option value="${cat}" ${c&&c.category===cat?'selected':''}>${cat}</option>`).join('')}</select></div>
+        <div class="form-group"><label>Status</label><select id="fStatus"><option value="active" ${c&&c.status==='active'?'selected':''}>Active</option><option value="draft" ${c&&c.status==='draft'?'selected':''}>Draft</option></select></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Thumbnail Emoji</label><input id="fThumb" value="${c?c.thumbnail:'📚'}" maxlength="4"></div>
+        <div class="form-group"><label>Accent Color</label><input id="fColor" type="color" value="${c?c.color:'#3b82f6'}" style="height:42px;padding:4px"></div>
+      </div>
+      <div class="form-group"><label>Lessons</label>
+        <div id="lessonBuilder" class="lesson-builder">${lessons.map(l=>lessonRowHTML(l)).join('')}</div>
+        <button class="btn btn-secondary btn-sm" onclick="addLessonRow()" style="margin-top:8px">＋ Add Lesson</button>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-secondary" onclick="hideModal()">Cancel</button><button class="btn btn-primary" onclick="saveCourse()">💾 Save Course</button></div>`);
+}
+function lessonRowHTML(l){
+  return `<div class="lesson-builder-item" data-lid="${l.id}">
+    <input placeholder="Lesson title" value="${l.title}" class="les-title" style="flex:2">
+    <select class="les-type"><option value="video" ${l.type==='video'?'selected':''}>🎬 Video</option><option value="reading" ${l.type==='reading'?'selected':''}>📖 Reading</option><option value="quiz" ${l.type==='quiz'?'selected':''}>📝 Quiz</option></select>
+    <input type="number" value="${l.duration}" class="les-dur" placeholder="min" style="width:70px" min="1">
+    <button class="remove-lesson" onclick="this.parentElement.remove()">✕</button>
+  </div>`;
+}
+function addLessonRow(){document.getElementById('lessonBuilder').insertAdjacentHTML('beforeend',lessonRowHTML({id:uid(),title:'',duration:30,type:'video'}))}
+function saveCourse(){
+  const title=document.getElementById('fTitle').value.trim();
+  const instructor=document.getElementById('fInstructor').value.trim();
+  const desc=document.getElementById('fDesc').value.trim();
+  const category=document.getElementById('fCategory').value;
+  const status=document.getElementById('fStatus').value;
+  const thumb=document.getElementById('fThumb').value||'📚';
+  const color=document.getElementById('fColor').value;
+  if(!title||!instructor||!desc){showToast('Please fill all required fields.','error');return}
+  const lessonEls=document.querySelectorAll('.lesson-builder-item');
+  const lessons=[];
+  lessonEls.forEach(el=>{const t=el.querySelector('.les-title').value.trim();const ty=el.querySelector('.les-type').value;const d=parseInt(el.querySelector('.les-dur').value)||30;
+    if(t)lessons.push({id:el.dataset.lid||uid(),title:t,type:ty,duration:d})});
+  if(!lessons.length){showToast('Add at least one lesson.','error');return}
+  const totalDur=Math.round(lessons.reduce((a,l)=>a+l.duration,0)/60);
+  let courses=getCourses();
+  if(App.editingCourseId){
+    const idx=courses.findIndex(c=>c.id===App.editingCourseId);
+    if(idx>=0){courses[idx]={...courses[idx],title,instructor,description:desc,category,status,thumbnail:thumb,color,lessons,duration:totalDur}}
+    showToast('Course updated successfully!','success');
+  } else {
+    courses.push({id:uid(),title,instructor,description:desc,category,status,thumbnail:thumb,color,lessons,duration:totalDur,createdAt:now()});
+    showToast('Course created successfully!','success');
+  }
+  DB.set(KEYS.courses,courses);hideModal();render();
+}
+// ===== DELETE COURSE =====
+function confirmDeleteCourse(courseId){
+  const c=getCourseById(courseId);if(!c)return;
+  showModal(`<div class="modal-header"><h2>Confirm Delete</h2><div class="modal-close" onclick="hideModal()">✕</div></div>
+    <div class="confirm-body"><div class="confirm-icon">⚠️</div><h3>Delete "${c.title}"?</h3><p>This will permanently remove this course and all related enrollments and progress data. This action cannot be undone.</p></div>
+    <div class="modal-footer"><button class="btn btn-secondary" onclick="hideModal()">Cancel</button><button class="btn btn-danger" onclick="deleteCourse('${courseId}')">🗑 Delete Course</button></div>`);
+}
+function deleteCourse(courseId){
+  let courses=getCourses().filter(c=>c.id!==courseId);
+  let enrollments=getEnrollments().filter(e=>e.courseId!==courseId);
+  let progress=getProgress().filter(p=>p.courseId!==courseId);
+  DB.set(KEYS.courses,courses);DB.set(KEYS.enrollments,enrollments);DB.set(KEYS.progress,progress);
+  hideModal();showToast('Course deleted successfully.','success');render();
+}
+// ===== EXPORTS =====
+function exportCSV(){
+  const enrollments=getEnrollments();const users=getUsers();const courses=getCourses();
+  const headers=['Student Name','Email','Course Title','Category','Enrolled On','Status','Completed On'];
+  const rows=enrollments.map(e=>{const u=users.find(x=>x.id===e.userId)||{name:'Unknown',email:'N/A'};const c=getCourseById(e.courseId)||{title:'Unknown',category:'N/A'};
+    return[u.name,u.email,c.title,c.category,formatDate(e.enrolledAt),e.status,e.completedAt?formatDate(e.completedAt):'—']});
+  const csv=[headers,...rows].map(r=>r.map(c=>'"'+(c||'').replace(/"/g,'""')+'"').join(',')).join('\n');
+  const blob=new Blob([csv],{type:'text/csv'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='eduflow_enrollments_'+new Date().toISOString().slice(0,10)+'.csv';a.click();
+  showToast('CSV exported successfully!','success');
+}
+function exportHTMLReport(){
+  const courses=getCourses();const enrollments=getEnrollments();const users=getUsers().filter(u=>u.role==='student');
+  const completions=enrollments.filter(e=>e.status==='completed').length;
+  const rate=enrollments.length?Math.round((completions/enrollments.length)*100):0;
+  const html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>EduFlow Analytics Report</title>
+    <style>body{font-family:Arial,sans-serif;max-width:900px;margin:0 auto;padding:40px;color:#333}
+    h1{color:#f5c842;border-bottom:2px solid #f5c842;padding-bottom:10px}h2{color:#555;margin-top:30px}
+    table{width:100%;border-collapse:collapse;margin:20px 0}th,td{border:1px solid #ddd;padding:10px;text-align:left}
+    th{background:#f5f5f5;font-weight:bold}.stats{display:flex;gap:20px;margin:20px 0}
+    .stat{flex:1;background:#f9f9f9;padding:20px;border-radius:8px;text-align:center}
+    .stat .val{font-size:28px;font-weight:bold;color:#f5c842}.stat .lbl{font-size:13px;color:#888;margin-top:4px}
+    .footer{margin-top:40px;padding-top:20px;border-top:1px solid #ddd;color:#888;font-size:12px}</style></head>
+    <body><h1>📊 EduFlow Analytics Report</h1><p>Generated on ${new Date().toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'})}</p>
+    <div class="stats"><div class="stat"><div class="val">${courses.length}</div><div class="lbl">Courses</div></div>
+    <div class="stat"><div class="val">${users.length}</div><div class="lbl">Students</div></div>
+    <div class="stat"><div class="val">${enrollments.length}</div><div class="lbl">Enrollments</div></div>
+    <div class="stat"><div class="val">${rate}%</div><div class="lbl">Completion Rate</div></div></div>
+    <h2>Course Enrollment Summary</h2><table><tr><th>Course</th><th>Category</th><th>Instructor</th><th>Enrolled</th><th>Completed</th><th>Status</th></tr>
+    ${courses.map(c=>{const ce=getCourseEnrollments(c.id);const comp=ce.filter(e=>e.status==='completed').length;
+      return`<tr><td>${c.title}</td><td>${c.category}</td><td>${c.instructor}</td><td>${ce.length}</td><td>${comp}</td><td>${c.status}</td></tr>`}).join('')}</table>
+    <h2>Enrollment Details</h2><table><tr><th>Student</th><th>Email</th><th>Course</th><th>Category</th><th>Enrolled On</th><th>Status</th><th>Completed On</th></tr>
+    ${enrollments.map(e=>{const u=users.find(x=>x.id===e.userId)||{name:'Unknown',email:'N/A'};const c=getCourseById(e.courseId)||{title:'Unknown',category:'N/A'};
+      return`<tr><td>${u.name}</td><td>${u.email}</td><td>${c.title}</td><td>${c.category}</td><td>${formatDate(e.enrolledAt)}</td><td>${e.status}</td><td>${e.completedAt?formatDate(e.completedAt):'—'}</td></tr>`}).join('')}</table>
+    <div class="footer">EduFlow Course Management System — Group 12 — Report v1.0</div></body></html>`;
+  const blob=new Blob([html],{type:'text/html'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='eduflow_report_'+new Date().toISOString().slice(0,10)+'.html';a.click();
+  showToast('HTML report exported successfully!','success');
+}
+// ===== INIT =====
+seedData();
+App.currentUserId=DB.getStr(KEYS.currentUser)||'stu1';
+render();
+</script>
+</body>
+</html>
